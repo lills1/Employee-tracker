@@ -15,11 +15,10 @@ VALUES
     ("Software engineer", "120000", 3),
     ( "Account manager", "160000", 2),
     ( "Accountant", "125000", 2),
-    ( "legal team lead", "250000", 4),
+    ( "Legal team lead", "250000", 4),
     ( "Lawyer", "190000", 4),
     ( "CEO", "250000",5);
-  --select on emplpoyee, role snd dept grouping by department_name and sum on salary 
-
+    
 INSERT INTO employee (first_name, last_name, role_id)
 VALUES
     ("Lilly", "Stephenson",1),
