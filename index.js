@@ -20,7 +20,7 @@ function createList() {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department"]
             }
         ])
 
@@ -46,6 +46,9 @@ function createList() {
             }
             if (answers.teamMembers === "update an employee role") {
                 updateRole();
+            }
+            if (answers.teamMembers === "view salaries by department") {
+                viewSalariesByDepartment();
             }
         });
 }
@@ -79,7 +82,7 @@ function addDepartment() {
             ]
         )
         .then(function (answers) {
-            db.query("insert into department(name) values(?)", [answers.departmentName],   function (err, data) {
+            db.query("insert into department(name) values(?)", [answers.departmentName], function (err, data) {
                 console.log("Your department has been added")
                 createList();
             })
@@ -93,4 +96,10 @@ function addEmployee() {
 }
 function updateRole() {
 
+}
+function viewSalariesByDepartment() {
+    db.query("select department.name as \"Department\",sum( salary) as \"Total salaries\" from employee, role, department where employee.role_id=role.id and role.department_id = department.id group by department.name;", function (err, data) {
+        console.table(data)
+        createList();
+    })
 }
