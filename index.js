@@ -89,11 +89,66 @@ function addDepartment() {
         })
 }
 function addRole() {
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "input",
+                    name: "RoleName",
+                    message: "What is the role you want to add?"
+                },
 
+                {
+                    type: "input",
+                    name: "Salary",
+                    message: "What is the salary of the role?"
+                },
+                {
+                    type: "list",
+                    name: "whichDepartment",
+                    message: "What department does this role fit within?",
+                    choices: ["Sales", "Finance", "Engineering", "Legal", "Management"]
+                }
+            ]
+        )
+    //     .then(function (answers) {
+    //         if(answers.whichDepartment==="Sales" || "Finance" || "Engineering" || "Legal" || "Management"){
+    //         db.query("insert into role(title, salary, department_id) values(?)", [answers.RoleName], [answers.salary], [answers.whichDepartment], function (err, data) {
+    //             console.log("Your role has been added")
+    //         })
+    //     })
+    // }
 }
 function addEmployee() {
-
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "input",
+                    name: "employeeFirstName",
+                    message: "What is the employee's first name?"
+                },
+                {
+                    type: "input",
+                    name: "employeeLastName",
+                    message: "What is the employee's last name?"
+                },
+                {
+                    type: "list",
+                    name: "employeeRole",
+                    message: "What is the employee's role?",
+                    choices: [db.query("Select * from role.title")]
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("insert into department(name) values(?)", [answers.departmentName], function (err, data) {
+                console.log("Your department has been added")
+                createList();
+            })
+        })
 }
+
 function updateRole() {
 
 }
