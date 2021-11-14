@@ -17,13 +17,14 @@ function createList() {
     //seed cache
     fetchEmployees();
     fetchDepartments();
+    fetchRoles();
     inquirer
         .prompt([
             {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager", "delete employee", "delete department"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager", "delete employee", "delete department", "delete role"]
             }
         ])
 
@@ -69,6 +70,9 @@ function createList() {
             }
             if (answers.teamMembers === "delete department") {
                 deleteDepartment();
+            }
+            if (answers.teamMembers === "delete role") {
+                deleteRole();
             }
         });
 }
@@ -309,6 +313,34 @@ function deleteDepartment() {
         })
 }
 
+function deleteRole() {
+    //seed cache
+    fetchRoles();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "whichRole",
+                    message: "Which role do you want to delete?",
+                    choices: fetchRoles()
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("delete from role where id=( select a from (select role.id as a from role where title=?)as x)", [answers.whichRole], function (err, data) {
+                if (err) {
+                    console.log('err while deleting role ', err);
+                }
+                else {
+                    console.log("Your role has been deleted");
+                }
+                createList();
+            })
+            // console.log("todo then");
+        })
+}
+
 function viewEmployeesByManager() {
     inquirer
         .prompt(
@@ -394,21 +426,22 @@ function fetchEmployees() {
 
 
 //todo: function to get all roles
-
+global.all_roles = []
 function fetchRoles() {
     // console.log("entered roles")
-    let roles = [];
+
     db.query("select title from role;", function (err, rows) {
         // console.table(data)
+        global.all_roles = []
         for (var i = 0; i < rows.length; i++) {
             //console.log(rows[i]);
-            roles.push(rows[i].title);
+            global.all_roles.push(rows[i].title);
         }
         // console.log("titles:" + titles);
-        return roles;
+        return global.all_roles;
     })
     // console.log("Final titles:" + titles);
-    return roles;
+    return global.all_roles;
 }
 
 
@@ -440,21 +473,21 @@ function fetchDepartments() {
 
 
 
-function fetchRoles() {
-    // console.log("entered roles")
-    let titles = [];
-    db.query("select title from role order by title;", function (err, rows) {
-        // console.table(data)
-        for (var i = 0; i < rows.length; i++) {
-            //console.log(rows[i]);
-            titles.push(rows[i].title);
-        }
-        // console.log("titles:" + titles);
-        return titles;
-    })
-    // console.log("Final titles:" + titles);
-    return titles;
-}
+// function fetchRoles() {
+//     // console.log("entered roles")
+//     let titles = [];
+//     db.query("select title from role order by title;", function (err, rows) {
+//         // console.table(data)
+//         for (var i = 0; i < rows.length; i++) {
+//             //console.log(rows[i]);
+//             titles.push(rows[i].title);
+//         }
+//         // console.log("titles:" + titles);
+//         return titles;
+//     })
+//     // console.log("Final titles:" + titles);
+//     return titles;
+// }
 
 
 function fetchRoleByTitle(title) {
