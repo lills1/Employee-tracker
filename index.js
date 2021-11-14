@@ -23,7 +23,7 @@ function createList() {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager"]
             }
         ])
 
@@ -60,6 +60,9 @@ function createList() {
             }
             if (answers.teamMembers === "view employee by department") {
                 viewEmployeesByDepartment();
+            }
+            if (answers.teamMembers === "update manager") {
+                updateManager();
             }
         });
 }
@@ -206,6 +209,40 @@ function updateRole() {
         })
 }
 
+function updateManager() {
+    //seed cache
+    fetchEmployees();
+    fetchRoles();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "whichEmployee",
+                    message: "Which employee's manager do you want to change?",
+                    choices: fetchEmployees()
+                },
+                {
+                    type: "list",
+                    name: "whichManager",
+                    message: "Which employee is now the manager?",
+                    choices: fetchEmployees()
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("update employee set manager_id=( select a from ( select e2.id as a from employee as e2 where concat (first_name, \" \", last_name) =? ) as x ) where employee.id=( select a from ( select e2.id as a from employee as e2 where concat (first_name, \" \", last_name) =? ) as y )", [answers.whichManager, answers.whichEmployee], function (err, data) {
+                if (err) {
+                    console.log('err while updating employee ', err);
+                }
+                else {
+                    console.log("Your role has been updated");
+                }
+                createList();
+            })
+            // console.log("todo then");
+        })
+}
 
 function viewEmployeesByManager() {
     inquirer
