@@ -16,13 +16,14 @@ db.connect(function (err) {
 function createList() {
     //seed cache
     fetchEmployees();
+    fetchDepartments();
     inquirer
         .prompt([
             {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department"]
             }
         ])
 
@@ -56,6 +57,9 @@ function createList() {
             }
             if (answers.teamMembers === "view employee by manager") {
                 viewEmployeesByManager();
+            }
+            if (answers.teamMembers === "view employee by department") {
+                viewEmployeesByDepartment();
             }
         });
 }
@@ -228,6 +232,32 @@ function viewEmployeesByManager() {
             })
         })
 }
+function viewEmployeesByDepartment() {
+    fetchDepartments();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "DepartmentName",
+                    message: "What is the department name?",
+                    choices: fetchDepartments()
+                }
+            ]
+        )
+        .then(function (answers) {
+
+            db.query("select * from employee where role_id in (select role.id from role where role.department_id = (select department.id from department where name=?));", [answers.DepartmentName], function (err, rows) {
+                if (err) {
+                    console.log('err while fetching employees ', err);
+                }
+                else {
+                    console.table(rows);
+                }
+                createList();
+            })
+        })
+}
 
 //todo: function to get all employees
 global.employees_list = [];
@@ -281,21 +311,28 @@ function fetchRoles() {
 
 
 
-
+global.departmentNames = []
 function fetchDepartments() {
     // console.log("entered roles")
-    let names = [];
+    //let names = [];
     db.query("select name from department order by name;", function (err, rows) {
-        // console.table(data)
-        for (var i = 0; i < rows.length; i++) {
-            //console.log(rows[i]);
-            names.push(rows[i].name);
+        if (err) {
+            console.log('err while creating employee ', err);
+        }
+        else {
+
+            // console.table(data)
+            global.departmentNames = []
+            for (var i = 0; i < rows.length; i++) {
+                //console.log(rows[i]);
+                departmentNames.push(rows[i].name);
+            }
         }
         // console.log("titles:" + titles);
-        return names;
+        return departmentNames;
     })
     // console.log("Final titles:" + titles);
-    return names;
+    return departmentNames;
 }
 
 
