@@ -23,7 +23,7 @@ function createList() {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager", "delete employee"]
             }
         ])
 
@@ -63,6 +63,9 @@ function createList() {
             }
             if (answers.teamMembers === "update manager") {
                 updateManager();
+            }
+            if (answers.teamMembers === "delete employee") {
+                deleteEmployee();
             }
         });
 }
@@ -237,6 +240,36 @@ function updateManager() {
                 }
                 else {
                     console.log("Your role has been updated");
+                }
+                createList();
+            })
+            // console.log("todo then");
+        })
+}
+
+
+function deleteEmployee() {
+    //seed cache
+    fetchEmployees();
+    fetchRoles();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "whichEmployee",
+                    message: "Which employee do you want to delete?",
+                    choices: fetchEmployees()
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("delete from employee where id=(select a from ( select e2.id as a from employee as e2 where concat (first_name, \" \", last_name) =? ) as x )", [answers.whichEmployee], function (err, data) {
+                if (err) {
+                    console.log('err while deleting employee ', err);
+                }
+                else {
+                    console.log("Your employee has been deleted");
                 }
                 createList();
             })
