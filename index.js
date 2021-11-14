@@ -23,7 +23,7 @@ function createList() {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager", "delete employee"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager", "view employee by department", "update manager", "delete employee", "delete department"]
             }
         ])
 
@@ -66,6 +66,9 @@ function createList() {
             }
             if (answers.teamMembers === "delete employee") {
                 deleteEmployee();
+            }
+            if (answers.teamMembers === "delete department") {
+                deleteDepartment();
             }
         });
 }
@@ -270,6 +273,35 @@ function deleteEmployee() {
                 }
                 else {
                     console.log("Your employee has been deleted");
+                }
+                createList();
+            })
+            // console.log("todo then");
+        })
+}
+
+
+function deleteDepartment() {
+    //seed cache
+    fetchDepartments();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "whichDepartment",
+                    message: "Which department do you want to delete?",
+                    choices: fetchDepartments()
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("delete from department where id=( select a from (select department.id as a from department where name=?)as x)", [answers.whichDepartment], function (err, data) {
+                if (err) {
+                    console.log('err while deleting department ', err);
+                }
+                else {
+                    console.log("Your department has been deleted");
                 }
                 createList();
             })
