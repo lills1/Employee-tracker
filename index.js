@@ -14,13 +14,15 @@ db.connect(function (err) {
     createList()
 })
 function createList() {
+    //seed cache
+    fetchEmployees();
     inquirer
         .prompt([
             {
                 type: "list",
                 message: "What would you like to do?",
                 name: "teamMembers",
-                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department"]
+                choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "view salaries by department", "view employee by manager"]
             }
         ])
 
@@ -45,10 +47,15 @@ function createList() {
                 addEmployee();
             }
             if (answers.teamMembers === "update an employee role") {
+                //seed cache
+                fetchEmployees();
                 updateRole();
             }
             if (answers.teamMembers === "view salaries by department") {
                 viewSalariesByDepartment();
+            }
+            if (answers.teamMembers === "view employee by manager") {
+                viewEmployeesByManager();
             }
         });
 }
@@ -107,17 +114,21 @@ function addRole() {
                     type: "list",
                     name: "whichDepartment",
                     message: "What department does this role fit within?",
-                    choices: ["Sales", "Finance", "Engineering", "Legal", "Management"]
+                    choices: fetchDepartments()
                 }
             ]
         )
-    //     .then(function (answers) {
-    //         if(answers.whichDepartment==="Sales" || "Finance" || "Engineering" || "Legal" || "Management"){
-    //         db.query("insert into role(title, salary, department_id) values(?)", [answers.RoleName], [answers.salary], [answers.whichDepartment], function (err, data) {
-    //             console.log("Your role has been added")
-    //         })
-    //     })
-    // }
+        .then(function (answers) {
+            db.query("insert into role(title, salary, department_id) values(?,?,(select id from department where department.name=?))", [answers.RoleName, answers.Salary, answers.whichDepartment], function (err, data) {
+                if (err) {
+                    console.log('err while creating employee ', err);
+                }
+                else {
+                    console.log("Your employee has been added");
+                }
+                createList();
+            })
+        })
 }
 function addEmployee() {
     inquirer
@@ -137,21 +148,194 @@ function addEmployee() {
                     type: "list",
                     name: "employeeRole",
                     message: "What is the employee's role?",
-                    choices: [db.query("Select * from role.title")]
+                    choices: fetchRoles()
                 }
             ]
         )
         .then(function (answers) {
-            db.query("insert into department(name) values(?)", [answers.departmentName], function (err, data) {
-                console.log("Your department has been added")
+            let role_id = fetchRoleByTitle(answers.employeeRole);
+            console.log(role_id);
+            db.query("insert into employee(first_name, last_name, role_id) values(?,?,(select id from role where role.title=?))", [answers.employeeFirstName, answers.employeeLastName, answers.employeeRole], function (err, data) {
+                if (err) {
+                    console.log('err while creating employee ', err);
+                }
+                else {
+                    console.log("Your employee has been added");
+                }
                 createList();
             })
         })
 }
 
 function updateRole() {
-
+    //seed cache
+    fetchEmployees();
+    fetchRoles();
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "whichEmployee",
+                    message: "Which employee's role do you want to update?",
+                    choices: fetchEmployees()
+                },
+                {
+                    type: "list",
+                    name: "whichRole",
+                    message: "Which role do you want to assign this employee?",
+                    choices: fetchRoles()
+                }
+            ]
+        )
+        .then(function (answers) {
+            db.query("update employee set role_id=( select id from role where role.title=? ) where employee.id=( select a from ( select e2.id as a from employee as e2 where concat (first_name, \" \", last_name) =? ) as x )", [answers.whichRole, answers.whichEmployee], function (err, data) {
+                if (err) {
+                    console.log('err while updating employee ', err);
+                }
+                else {
+                    console.log("Your role has been updated");
+                }
+                createList();
+            })
+            // console.log("todo then");
+        })
 }
+
+
+function viewEmployeesByManager() {
+    inquirer
+        .prompt(
+            [
+                {
+                    type: "list",
+                    name: "ManagersName",
+                    message: "What is the managers name?",
+                    choices: fetchEmployees()
+                }
+            ]
+        )
+        .then(function (answers) {
+
+            db.query("select * from employee where manager_id=(select employee.id from employee where concat (first_name, \" \", last_name)=?);", [answers.ManagersName], function (err, rows) {
+                if (err) {
+                    console.log('err while updating employee ', err);
+                }
+                else {
+                    console.table(rows);
+                }
+                createList();
+            })
+        })
+}
+
+//todo: function to get all employees
+global.employees_list = [];
+function fetchEmployees() {
+    //console.log("entered fetch employees!!")
+
+    //console.log("starting employees1:" + employees_list);
+    db.query("select concat (first_name, \" \", last_name) as name from employee;", function (err, rows) {
+        // console.table(data)
+        //console.log("starting employees:" + employees_list);
+        if (err) {
+            console.log('err while creating employee ', err);
+        }
+        else {
+            // console.log("Your employee has been added");
+            global.employees_list = [];
+            for (var i = 0; i < rows.length; i++) {
+                //console.log(rows[i]);
+                global.employees_list.push(rows[i].name);
+            }
+            //console.log("employees:" + global.employees_list);
+            return global.employees_list;
+        }
+
+    });
+    //console.log("Final employees:" + global.employees_list);
+
+
+    return global.employees_list;
+}
+
+
+
+//todo: function to get all roles
+
+function fetchRoles() {
+    // console.log("entered roles")
+    let roles = [];
+    db.query("select title from role;", function (err, rows) {
+        // console.table(data)
+        for (var i = 0; i < rows.length; i++) {
+            //console.log(rows[i]);
+            roles.push(rows[i].title);
+        }
+        // console.log("titles:" + titles);
+        return roles;
+    })
+    // console.log("Final titles:" + titles);
+    return roles;
+}
+
+
+
+
+function fetchDepartments() {
+    // console.log("entered roles")
+    let names = [];
+    db.query("select name from department order by name;", function (err, rows) {
+        // console.table(data)
+        for (var i = 0; i < rows.length; i++) {
+            //console.log(rows[i]);
+            names.push(rows[i].name);
+        }
+        // console.log("titles:" + titles);
+        return names;
+    })
+    // console.log("Final titles:" + titles);
+    return names;
+}
+
+
+
+
+function fetchRoles() {
+    // console.log("entered roles")
+    let titles = [];
+    db.query("select title from role order by title;", function (err, rows) {
+        // console.table(data)
+        for (var i = 0; i < rows.length; i++) {
+            //console.log(rows[i]);
+            titles.push(rows[i].title);
+        }
+        // console.log("titles:" + titles);
+        return titles;
+    })
+    // console.log("Final titles:" + titles);
+    return titles;
+}
+
+
+function fetchRoleByTitle(title) {
+    let id = -1;
+    db.query("select id from role where title=?;", title, function (err, rows) {
+        // console.table(data)
+        // for (var i = 0; i < rows.length; i++) {
+        //     console.log(rows[i]);
+        //     titles.push(rows[i].title);
+        // }
+        // console.log("titles:" + titles);
+        id = rows[0].id;
+        console.log("Number:" + id);
+        return id;
+    })
+    //console.log("Final id:" + id);
+    //return id;
+}
+
+
 function viewSalariesByDepartment() {
     db.query("select department.name as \"Department\",sum( salary) as \"Total salaries\" from employee, role, department where employee.role_id=role.id and role.department_id = department.id group by department.name;", function (err, data) {
         console.table(data)
