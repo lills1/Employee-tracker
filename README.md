@@ -19,9 +19,13 @@
   ## License
   MIT
   ## Preview
+  Follow this link for a demo: https://drive.google.com/file/d/1A8uTIa4uDRHE2deP--2Q1LhKKdDocO1-/view?usp=sharing
   ## Technologies
+  - MySQL
+  -Javascript
+  - Node.js
   ## Extensions
-
+  - Build up a front end
   ## Contribution
   no contributing available
   ## Questions
