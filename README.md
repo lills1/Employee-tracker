@@ -10,7 +10,6 @@
   - [Technologies](#technologies)
   - [Extension ideas](#extensions)
   - [Contributing](#contribution)
-  - [Tests](#tests)
   - [Questions](#questions)
   ## Installation
      npm i inquirer
@@ -22,7 +21,7 @@
   Follow this link for a demo: https://drive.google.com/file/d/1A8uTIa4uDRHE2deP--2Q1LhKKdDocO1-/view?usp=sharing
   ## Technologies
   - MySQL
-  -Javascript
+  - Javascript
   - Node.js
   ## Extensions
   - Build up a front end
