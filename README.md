@@ -6,6 +6,9 @@
   - [Installation](#installation)
   - [Usage](#usage)
   - [License](#license)
+  - [Preview](#preview)
+  - [Technologies](#technologies)
+  - [Extension ideas](#extensions)
   - [Contributing](#contribution)
   - [Tests](#tests)
   - [Questions](#questions)
@@ -15,6 +18,10 @@
   knowledge of node.js
   ## License
   MIT
+  ## Preview
+  ## Technologies
+  ## Extensions
+
   ## Contribution
   no contributing available
   ## Questions
